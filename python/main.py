@@ -2,7 +2,7 @@ import base64
 import hashlib
 import hmac
 from datetime import datetime
-from urllib.parse import urlparse
+from urllib import parse
 
 import requests
 
@@ -71,17 +71,12 @@ class Sdk:
 
     # 签名
     def sign_request(self, prep: requests.PreparedRequest):
-        uri = urlparse(prep.url)
+        uri = parse.urlparse(prep.url)
 
         query = ''
         if uri.query:
-            query_dict = {}
-            for q in uri.query.split('&'):
-                qs = q.split('=')
-                query_dict[qs[0]] = qs[1]
-
-            query_dict = sorted(query_dict.items(), key=lambda item: item[0])
-            query = '&'.join([f'{k}={v}' for k, v in query_dict])
+            query_dict = sorted(parse.parse_qsl(uri.query))
+            query = parse.urlencode(query_dict)
 
         content_type = ''
         if 'content-type' in prep.headers:
