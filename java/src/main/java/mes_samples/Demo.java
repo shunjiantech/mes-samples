@@ -42,6 +42,7 @@ public class Demo {
                 }
             });
             sdk.UploadImage("baidu.png");
+            sdk.PingInstrument(100);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -111,6 +112,22 @@ public class Demo {
             System.out.println(response.body().string());
         }
 
+        // 心跳
+        public void PingInstrument(long instrumentId) throws Exception {
+            RequestBody body = RequestBody.create(null, new byte[0]);
+
+            Request request = new Request.Builder()
+                    .url(String.format("%s/instruments/%d/ping", baseUrl, instrumentId))
+                    .post(body)
+                    .build();
+
+            request = SignRequest(request);
+
+            Response response = client.newCall(request).execute();
+
+            System.out.println(response.body().string());
+        }
+
         private Request SignRequest(Request request) throws Exception {
             List<String> queryList = new ArrayList<>();
             Set<String> querySet = request.url().queryParameterNames();
@@ -124,7 +141,7 @@ public class Demo {
 
             String contentType = "";
             String contentMd5 = "";
-            if (request.body() != null) {
+            if (request.body() != null && request.body().contentLength() > 0) {
                 contentType = request.body().contentType().toString();
 
                 Buffer buffer = new Buffer();

@@ -69,6 +69,23 @@ class Sdk:
 
         print(resp.text)
 
+    # 心跳
+    def ping_instrument(self, instrument_id: int):
+        url = "{0}/instruments/{1}/ping".format(self.base_url, instrument_id)
+
+        req = requests.Request(method='POST', url=url)
+
+        prep = self.session.prepare_request(req)
+
+        self.sign_request(prep)
+
+        resp = self.session.send(prep)
+
+        if resp.status_code != 200:
+            print("[Err] status code: {0}".format(resp.status_code))
+
+        print(resp.text)
+
     # 签名
     def sign_request(self, prep: requests.PreparedRequest):
         uri = parse.urlparse(prep.url)
@@ -131,3 +148,4 @@ sdk.save_test_data('20210901103050484', [
     }
 ])
 sdk.upload_image('./baidu.png')
+sdk.ping_instrument(100)

@@ -30,6 +30,7 @@ sdk.SaveTestData("20210901103050484", new Dictionary<string, object>[]
     }
 });
 sdk.UploadImage("../../../baidu.png");
+sdk.PingInstrument(100);
 
 class Sdk
 {
@@ -51,7 +52,7 @@ class Sdk
     public void GetDevices(long testStationId, string qrcode)
     {
         var request = new HttpRequestMessage(HttpMethod.Get,
-            this._baseUrl + $"/devices?test_station_id={testStationId}&qrcode={qrcode}");
+            $"{this._baseUrl}/devices?test_station_id={testStationId}&qrcode={qrcode}");
 
         SignRequest(request);
 
@@ -64,8 +65,7 @@ class Sdk
     {
         var content = JsonContent.Create(testData);
 
-        var request = new HttpRequestMessage(HttpMethod.Post,
-            this._baseUrl + $"/devices/{qrcode}/test_data");
+        var request = new HttpRequestMessage(HttpMethod.Post, $"{this._baseUrl}/devices/{qrcode}/test_data");
         request.Content = content;
 
         SignRequest(request);
@@ -81,8 +81,19 @@ class Sdk
         var content = new MultipartFormDataContent();
         content.Add(new StreamContent(stream), "file", Path.GetFileName(imagePath));
 
-        var request = new HttpRequestMessage(HttpMethod.Post, this._baseUrl + "/uploads");
+        var request = new HttpRequestMessage(HttpMethod.Post, $"{this._baseUrl}/uploads");
         request.Content = content;
+
+        SignRequest(request);
+
+        var response = _client.SendAsync(request).Result;
+        Console.WriteLine(response.Content.ReadAsStringAsync().Result);
+    }
+
+    // 心跳
+    public void PingInstrument(long instrumentId)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, $"{this._baseUrl}/instruments/{instrumentId}/ping");
 
         SignRequest(request);
 

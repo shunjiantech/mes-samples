@@ -40,6 +40,7 @@ func main() {
 		},
 	})
 	_ = sdk.UploadImage("baidu.png")
+	_ = sdk.PingInstrument(100)
 }
 
 type Sdk struct {
@@ -193,6 +194,39 @@ func (c *Sdk) UploadImage(imagePath string) error {
 	return nil
 }
 
+// PingInstrument 心跳
+func (c *Sdk) PingInstrument(instrumentId int64) error {
+	url := fmt.Sprintf("%s/instruments/%d/ping", c.baseUrl, instrumentId)
+	req, err := http.NewRequest("POST", url, nil)
+	if err != nil {
+		return err
+	}
+
+	err = c.signRequest(req)
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("[Err] status code: %d", resp.StatusCode)
+	}
+
+	content, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	fmt.Println(string(content))
+
+	return nil
+}
+
 // signRequest 签名
 func (c *Sdk) signRequest(req *http.Request) error {
 	var query string
@@ -217,7 +251,7 @@ func (c *Sdk) signRequest(req *http.Request) error {
 	switch req.Method {
 	case http.MethodGet, http.MethodDelete:
 	case http.MethodPost, http.MethodPut:
-		if req.Body != nil {
+		if req.Body != nil && req.Body != http.NoBody {
 			content, err := ioutil.ReadAll(req.Body)
 			if err != nil {
 				return err
